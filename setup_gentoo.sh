@@ -148,14 +148,21 @@ read performance_opts
 performance_opts="${performance_opts,,}"
 printf ${LIGHTGREEN}"Beginning installation, this will take several minutes\n"
 
+###################################################
+# Kopiert Ordner (von GetHub wgeted) mit Skripten #
+###################################################
 #copying files into place
 mount $part_4 /mnt/gentoo
-mv deploygentoo-master /mnt/gentoo
-mv deploygentoo-master.zip /mnt/gentoo/
-mv network_devices /mnt/gentoo/deploygentoo-master/
-cd /mnt/gentoo/deploygentoo-master
+mv deploygentoo-jojo /mnt/gentoo
+# eigentlich eine .zip Datei. deploygentoo-master.zip in deploygentoo-jojo geändert
+mv deploygentoo-jojo /mnt/gentoo/
+mv network_devices /mnt/gentoo/deploygentoo-jojo/
+cd /mnt/gentoo/deploygentoo-jojo
 
-install_vars=/mnt/gentoo/deploygentoo-master/install_vars
+# Ergänzt weil die Datei fehlt !!!
+touch /mnt/gentoo/deploygentoo-jojo/install_vars
+
+install_vars=/mnt/gentoo/deploygentoo-jojo/install_vars
 cpus=$(grep -c ^processor /proc/cpuinfo)
 pluscpus=$((cpus+1))
 echo "$disk" >> "$install_vars"
@@ -222,22 +229,22 @@ printf "unpacked stage 3\n"
 # Konfiguriert Portage anhand des installierten Prozessors #
 ############################################################
 #rm -rf /mnt/gentoo/etc/portage
-cd /mnt/gentoo/deploygentoo-master/gentoo/
-cp -a /mnt/gentoo/deploygentoo-master/gentoo/portage/package.use/. /mnt/gentoo/etc/portage/package.use/
+cd /mnt/gentoo/deploygentoo-jojo/gentoo/
+cp -a /mnt/gentoo/deploygentoo-jojo/gentoo/portage/package.use/. /mnt/gentoo/etc/portage/package.use/
 cd /mnt/gentoo/
 rm -rf /mnt/gentoo/etc/portage/make.conf
 ##copies our pre-made make.conf over
-cp /mnt/gentoo/deploygentoo-master/gentoo/portage/make.conf /mnt/gentoo/etc/portage/
+cp /mnt/gentoo/deploygentoo-jojo/gentoo/portage/make.conf /mnt/gentoo/etc/portage/
 printf "copied new make.conf to /etc/portage/\n"
 printf "there are %s cpus\n" $cpus
 sed -i "s/MAKEOPTS=\"-j3\"/MAKEOPTS=\"-j$pluscpus -l$cpus\"/g" /mnt/gentoo/etc/portage/make.conf
 sed -i "s/--jobs=3  --load-average=3/--jobs=$cpus  --load-average=$cpus/g" /mnt/gentoo/etc/portage/make.conf
 printf "moved portage files into place\n"
 
-#cp /mnt/gentoo/deploygentoo-master/gentoo/portage/linux_drivers /mnt/gentoo/etc/portage/
-cp /mnt/gentoo/deploygentoo-master/gentoo/portage/package.license /mnt/gentoo/etc/portage
-#cp /mnt/gentoo/deploygentoo-master/gentoo/portage/package.accept_keywords /mnt/gentoo/etc/portage/
-#cp -r /mnt/gentoo/deploygentoo-master/gentoo/portage/profile /mnt/gentoo/etc/portage/
+#cp /mnt/gentoo/deploygentoo-jojo/gentoo/portage/linux_drivers /mnt/gentoo/etc/portage/
+cp /mnt/gentoo/deploygentoo-jojo/gentoo/portage/package.license /mnt/gentoo/etc/portage
+#cp /mnt/gentoo/deploygentoo-jojo/gentoo/portage/package.accept_keywords /mnt/gentoo/etc/portage/
+#cp -r /mnt/gentoo/deploygentoo-jojo/gentoo/portage/profile /mnt/gentoo/etc/portage/
 
 mkdir --parents /mnt/gentoo/etc/portage/repos.conf
 cp /mnt/gentoo/usr/share/portage/config/repos.conf /mnt/gentoo/etc/portage/repos.conf/gentoo.conf
@@ -247,8 +254,8 @@ printf "copied gentoo repository to repos.conf\n"
 cp --dereference /etc/resolv.conf /mnt/gentoo/etc
 printf "copied over DNS info\n"
 
-cp /mnt/gentoo/deploygentoo-master/post_chroot.sh /mnt/gentoo/
-cp /mnt/gentoo/deploygentoo-master/install_vars /mnt/gentoo/
+cp /mnt/gentoo/deploygentoo-jojo/post_chroot.sh /mnt/gentoo/
+cp /mnt/gentoo/deploygentoo-jojo/install_vars /mnt/gentoo/
 printf "copied post_chroot.sh to /mnt/gentoo\n"
 chmod +x /mnt/gentoo/post_chroot.sh
 
