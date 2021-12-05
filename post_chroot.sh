@@ -2,7 +2,7 @@
 LIGHTRED='\033[1;91m'
 LIGHTGREEN='\033[1;32m'
 source /etc/profile
-cd deploygentoo-master
+cd deploygentoo-jojo
 scriptdir=$(pwd)
 cd ..
 sed -i '/^$/d' install_vars
@@ -89,16 +89,16 @@ emerge -q app-arch/lz4
 emerge --autounmask-continue -q sys-kernel/genkernel
 emerge app-eselect/eselect-repository
 if [ $kernelanswer = "no" ]; then
-	#cp /deploygentoo-master/gentoo/kernel/gentoominimal /root/kernel.config
+	#cp /deploygentoo-jojo/gentoo/kernel/gentoominimal /root/kernel.config
 	#genkernel --kernel-config=/root/kernel.config all
-	cp /deploygentoo-master/gentoo/kernel/gentoominimal /usr/src/linux/.config
+	cp /deploygentoo-jojo/gentoo/kernel/gentoominimal /usr/src/linux/.config
 	make $jobs && make modules_install
 	make install
 	#mv /root/kernel.config /usr/src/linux/.config
 	printf "Kernel installed\n"
 elif [ $kernelanswer = "edit" ]; then
     make mrproper
-	cp /deploygentoo-master/gentoo/kernel/gentoominimal /usr/src/linux/.config
+	cp /deploygentoo-jojo/gentoo/kernel/gentoominimal /usr/src/linux/.config
 	make menuconfig
 	make $jobs && make modules_install
 	make install
@@ -164,15 +164,17 @@ printf "run commands manually from here on to see what breaks\n"
 useradd -m -G users,wheel,audio -s /bin/bash $username
 printf "added user\n"
 cd ..
-mv deploygentoo-master.zip /home/$username
-##rm -rf /deploygentoo-master
+# umbenannt deploygentoo-jojo.zip nach 'jojo' ohne der .zip Endung
+mv jojo /home/$username
+
+##rm -rf /deploygentoo-jojo
 stage3=$(ls stage3*)
 rm -rf $stage3
 #libressl selection stage
 #if [ $sslanswer = "yes" ]; then
 #    sed -i 's/-ios/-ios libressl/g' /etc/portage/make.conf
 #    sed -i -e '$aCURL_SSL="libressl"' /etc/portage/make.conf
-#    cp -r /deploygentoo-master/gentoo/portage/profile /etc/portage/
+#    cp -r /deploygentoo-jojo/gentoo/portage/profile /etc/portage/
 #    emerge -q gentoolkit
 #    mkdir -p /etc/portage/profile
 #    echo "-libressl" >> /etc/portage/profile/use.stable.mask
@@ -278,7 +280,7 @@ if [ $sslanswer = "yes" ]; then
     sed -i 's/mbedtls/mbedtls libressl/g' /etc/portage/package.use/package.use
     sed -i 's/nodejs/nodejs -system-ssl/g' /etc/portage/package.use/package.use
     sed -i -e '$aCURL_SSL="libressl"' /etc/portage/make.conf
-    cp -r /deploygentoo-master/gentoo/portage/profile /etc/portage/
+    cp -r /deploygentoo-jojo/gentoo/portage/profile /etc/portage/
     mkdir -p /etc/portage/profile
     echo "-libressl" >> /etc/portage/profile/use.stable.mask
     echo "dev-libs/openssl" >> /etc/portage/package.mask
@@ -330,10 +332,10 @@ done
 printf "cleaning up\n"
 rm -rf /gentootype.txt
 rm -rf /install_vars
-cp -r /deploygentoo-master/gentoo/portage/savedconfig /etc/portage/
-cp -r /deploygentoo-master/gentoo/portage/env /etc/portage/
-cp /deploygentoo-master/gentoo/portage/package.env /etc/portage/
-rm -rf /deploygentoo-master
+cp -r /deploygentoo-jojo/gentoo/portage/savedconfig /etc/portage/
+cp -r /deploygentoo-jojo/gentoo/portage/env /etc/portage/
+cp /deploygentoo-jojo/gentoo/portage/package.env /etc/portage/
+rm -rf /deploygentoo-jojo
 printf ${LIGHTGREEN}"You now have a completed gentoo installation system, reboot and remove the installation media to load it\n"
 printf ${LIGHTGREEN}"reboot\n"
 rm -rf /post_chroot.sh
