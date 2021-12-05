@@ -8,6 +8,7 @@ CYAN='\033[1;96m'
 cd ..
 start_dir=$(pwd)
 printf ${MAGENTA}"MAKE SURE YOUR ROOT PARTITION IS THE 2ND ONE ON THE DEVICE YOU'LL BE INSTALLING TO\n\n"
+printf ${MAGENTA} "Vergewissere folgenden Dateien Rechte zum Ausführen gegeben zu haben:\n post_chroot.sh\n install_wordlist.sh\n install_software.sh\n deploy_rice.sh\n\n"
 fdisk -l >> devices
 ifconfig -s >> nw_devices
 cut -d ' ' -f1 nw_devices >> network_devices
@@ -26,8 +27,16 @@ while true; do
     partition_count="$(grep -o $disk devices | wc -l)"
     disk_chk=("/dev/${disk}")
     if grep "$disk_chk" devices; then
-        printf "Would you like to auto provision %s? \n This will create a GPT partition scheme where\n%s1 = 2 MB bios_partition\n%s2 = 128 MB boot partition\n%s3 = 4 GB swap_partition\n%s4 x GB root partition (the rest of the hard disk)\n\nEnter y to continue with auto provision or n to exit the script \n>" $disk_chk $disk_chk $disk_chk $disk_chk $disk_chk
+        printf "Would you like to auto provision %s? \n 
+		This will create a GPT partition scheme where\n
+		%s1 = 2 MB bios_partition\n
+		%s2 = 128 MB boot partition\n
+		%s3 = 4 GB swap_partition\n
+		%s4 x GB root partition (the rest of the hard disk)\n
+		\n
+		Enter y to continue with auto provision or n to exit the script \n>" $disk_chk $disk_chk $disk_chk $disk_chk $disk_chk
         read auto_prov_ans
+		# YES | Wenn automatisch konfiguriert werden soll
         if [ "$auto_prov_ans" = "y" ]; then
             wipefs -a $disk_chk
             parted -a optimal $disk_chk --script mklabel gpt
@@ -54,6 +63,8 @@ while true; do
             clear
             sleep 2
             break
+			
+		# NOT | Wenn nicht automatisch konfiguriert soll
         elif [ "$auto_prov_ans" = "n" ]; then
             printf ${CYAN}"Enter the partition number for root (ex, 2 for /dev/sda2)\n>"
             read num
@@ -109,18 +120,26 @@ while true; do
     fi
 done
 
+
+#######################################
+# Eingabe von einigen Konfigurationen #
+#######################################
+# Gentoo Stage3 Tarball Auswahl
 printf "enter a number for the stage 3 you want to use\n"
 printf "0 = regular\n1 = regular hardened\n2 = hardened musl\n3 = vanilla musl\n>"
 read stage3select
+# Nicht-Root User erstellen ||| There is a possibility this won't work since the handbook creates a user after rebooting and logging as root
 printf ${CYAN}"Enter the username for your NON ROOT user\n>"
-#There is a possibility this won't work since the handbook creates a user after rebooting and logging as root
 read username
 username="${username,,}"
+# Kernel Optionen auswählen
 printf ${CYAN}"Enter Yes to make a kernel from scratch, edit to edit the hardened config, or No to use the default hardened config\n>"
 read kernelanswer
 kernelanswer="${kernelanswer,,}"
+# Hostname auswählen
 printf ${CYAN}"Enter the Hostname you want to use\n>"
 read hostname
+# Optionales
 printf ${CYAN}"Do you want to replace OpenSSL with LibreSSL (recommended) in your system?(yes or no)\n>"
 read sslanswer
 sslanswer="${sslanswer,,}"
@@ -170,7 +189,9 @@ esac
 
 STAGE3_PATH_URL=http://distfiles.gentoo.org/releases/amd64/autobuilds/$GENTOO_TYPE.txt
 STAGE3_PATH=$(curl -s $STAGE3_PATH_URL | grep -v "^#" | cut -d" " -f1)
-STAGE3_URL=http://distfiles.gentoo.org/releases/amd64/autobuilds/$STAGE3_PATH
+# Hatte einen 404 Error
+#STAGE3_URL=http://distfiles.gentoo.org/releases/amd64/autobuilds/$STAGE3_PATH
+STAGE3_URL=https://mirror.bytemark.co.uk/gentoo//releases/amd64/autobuilds/20211128T170532Z/stage3-amd64-hardened-openrc-20211128T170532Z.tar.xz
 touch /mnt/gentoo/gentootype.txt
 echo $GENTOO_TYPE >> /mnt/gentoo/gentootype.txt
 cd /mnt/gentoo/
@@ -193,9 +214,13 @@ check_file_exists () {
 
 check_file_exists /mnt/gentoo/stage3*
 stage3=$(ls /mnt/gentoo/stage3*)
-tar xpvf $stage3 --xattrs-include='*.*' --numeric-owner
+# das 'v' aus xpvf entfernt
+tar xpf $stage3 --xattrs-include='*.*' --numeric-owner
 printf "unpacked stage 3\n"
 
+############################################################
+# Konfiguriert Portage anhand des installierten Prozessors #
+############################################################
 #rm -rf /mnt/gentoo/etc/portage
 cd /mnt/gentoo/deploygentoo-master/gentoo/
 cp -a /mnt/gentoo/deploygentoo-master/gentoo/portage/package.use/. /mnt/gentoo/etc/portage/package.use/
