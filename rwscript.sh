@@ -5,12 +5,6 @@
 printf "Welcher Skript soll umgeschrieben werden? (ex. jojo.sh)\n"
 read file_name_antwort
 
-existsFile $(pwd)/$file_name_antwort
-
-sed -i -e 's/\r$//' $file_name_antwort
-
-printf "DONE!"\n
-
 existsFile() {
 	file=$1
 	if [ -e $file ]; then
@@ -21,3 +15,9 @@ existsFile() {
 		$2
 	fi
 }
+
+existsFile $file_name_antwort
+
+sed -i -e 's/\r$//' $file_name_antwort
+
+printf "DONE!\n"
